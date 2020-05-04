@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NGK_Assignment_3.Areas.Database;
 
 namespace NGK_Assignment_3.Migrations
 {
     [DbContext(typeof(NGKDbContext))]
-    partial class NGKDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200504131734_FixedRelationships")]
+    partial class FixedRelationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,7 +61,7 @@ namespace NGK_Assignment_3.Migrations
 
                     b.HasKey("Lat", "Lon");
 
-                    b.ToTable("Places");
+                    b.ToTable("Place");
                 });
 
             modelBuilder.Entity("NGK_Assignment_3.Areas.Database.Models.User", b =>

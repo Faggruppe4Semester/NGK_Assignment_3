@@ -7,6 +7,7 @@ namespace NGK_Assignment_3.Areas.Database
     {
         public DbSet<Measurement> Measurements { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Place> Places { get; set; }
 
         public NGKDbContext(DbContextOptions<NGKDbContext> options)
             : base(options) {}
@@ -21,6 +22,12 @@ namespace NGK_Assignment_3.Areas.Database
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Place>().HasKey(place => new {place.Lat, place.Lon});
+            
+
+            modelBuilder.Entity<Measurement>()
+                .HasOne(m => m.Place)
+                .WithMany(p => p.Measurements)
+                .HasForeignKey(m => new {m.PlaceLat, m.PlaceLon});
 
         }
     }
