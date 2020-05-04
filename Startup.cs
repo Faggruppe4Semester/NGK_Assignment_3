@@ -37,22 +37,35 @@ namespace NGK_Assignment_3
             services.AddDbContext<NGKDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("LocalDB")));
 
+            var SecretKey = Encoding.ASCII.GetBytes
+                ("YourKey-2374-OFFKDI940NG7:56753253-tyuw-5769-0921-kfirox29zoxv");
             services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = "Jwt";
-                options.DefaultChallengeScheme = "Jwt";
-            }).AddJwtBearer("Jwt", options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    ValidateAudience = false,
-                    ValidateIssuer = false,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("12312dklfjdhgkh3892345867234987!¤%#%¤&3123123")),
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(5)
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(token =>
+                {
+                    token.SaveToken = true;
+                    token.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        //Same Secret key will be used while creating the token
+                        IssuerSigningKey = new SymmetricSecurityKey(SecretKey),
+                        ValidateIssuer = true,
+                        //Usually, this is your application base URL
+                        ValidIssuer = "https://localhost:44399/",
+                        ValidateAudience = true,
+                        //Here, we are creating and using JWT within the same application.
+                        //In this case, base URL is fine.
+                        //If the JWT is created using a web service, then this would be the consumer URL.
+                        ValidAudience = "https://localhost:44399/",
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
 
             services.AddAuthorization();
 

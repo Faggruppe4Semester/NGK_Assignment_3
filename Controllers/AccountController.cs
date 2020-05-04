@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -24,7 +25,6 @@ namespace NGK_Assignment_3.Controllers
     {
         private NGKDbContext _context;
         private IMapper _mapper;
-        private JwtSecurityTokenHandler _tokenHandler = new JwtSecurityTokenHandler();
         byte[] key = Encoding.ASCII.GetBytes("12312dklfjdhgkh3892345867234987!¤%#%¤&3123123");
 
         public AccountController(NGKDbContext context, IMapper mapper)
@@ -56,16 +56,7 @@ namespace NGK_Assignment_3.Controllers
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            var token = _tokenHandler.CreateJwtSecurityToken(new SecurityTokenDescriptor()
-            {
-                Subject = new ClaimsIdentity(new List<Claim>() {new Claim(ClaimTypes.Email, user.Email)}),
-                Expires = DateTime.Now.AddMinutes(5),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            });
-
-            regUser.Token = _tokenHandler.WriteToken(token);
-
-            return regUser;
+            return await Login(regUser);
         }
 
         [HttpPost("Login")]
@@ -79,13 +70,23 @@ namespace NGK_Assignment_3.Controllers
             var validPwd = BCrypt.Net.BCrypt.Verify(loginUser.Password, user.PasswordHash);
             if (!validPwd) return BadRequest("Invalid login");
 
-            var token = _tokenHandler.CreateJwtSecurityToken(new SecurityTokenDescriptor()
-            {
-                Subject = new ClaimsIdentity(new List<Claim>() { new Claim(ClaimTypes.Email, user.Email) }),
-                Expires = DateTime.Now.AddMinutes(5),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            });
-            loginUser.Token = _tokenHandler.WriteToken(token);
+            //Authentication successful, Issue Token with user credentials
+            //Provide the security key which was given in the JWToken configuration in Startup.cs
+            var key = Encoding.ASCII.GetBytes
+                ("YourKey-2374-OFFKDI940NG7:56753253-tyuw-5769-0921-kfirox29zoxv");
+            //Generate Token for user 
+            var JWToken = new JwtSecurityToken(
+                issuer: "https://localhost:44399/",
+                audience: "https://localhost:44399/",
+                claims: GetUserClaims(user),
+                notBefore: new DateTimeOffset(DateTime.Now).DateTime,
+                expires: new DateTimeOffset(DateTime.Now.AddDays(1)).DateTime,
+                //Using HS256 Algorithm to encrypt Token
+                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
+            );
+            loginUser.Token = new JwtSecurityTokenHandler().WriteToken(JWToken);
+
             return loginUser;
         }
 
@@ -99,6 +100,14 @@ namespace NGK_Assignment_3.Controllers
         [HttpDelete("{id}")]
         public void Delete([FromBody] UserDto regUser)
         {
+        }
+
+        private IEnumerable<Claim> GetUserClaims(User userDto)
+        {
+            return new[]
+            {
+                new Claim(ClaimTypes.Email, userDto.Email)
+            };
         }
     }
 }
