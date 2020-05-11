@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using NGK_Assignment_3.Areas.Database;
 using NGK_Assignment_3.Areas.Database.Models;
 
@@ -17,29 +20,60 @@ namespace NGK_Assignment_3.Controllers
         public ObservationController(NGKDbContext context)
         {
             _context = context;
-            var brabrand = _context.Places.Where(p => p.Name == "Brabrand").FirstOrDefault();
-            var dummy1 = new Measurement() { Humidity = 26, Place = brabrand, Pressure = 101200, Temperature = 17, Time = DateTime.Now.AddDays(1) };
-            _context.Measurements.Add(dummy1);
             _context.SaveChanges();
         }
         // GET: api/Observation
         [HttpGet]
-        public ActionResult<Measurement> Get()
+        public ActionResult<List<Measurement>> Get()
         {
-            return _context.Measurements.FirstOrDefault();
+            return _context.Measurements
+                .Include(m => m.Place)
+                .OrderByDescending(M => M.Time)
+                .Take(3)
+                .ToList();
         }
 
-        // GET: api/Observation/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        // GET: api/Observation/MM-DD-YYYY
+        [HttpGet("{date}")]
+        public ActionResult<List<Measurement>> Get(DateTime date)
         {
-            return "value";
+            return _context.Measurements
+                .Include(m => m.Place)
+                .OrderByDescending(m => m.Time)
+                .Where(m => m.Time.Date == date.Date)
+                .ToList();
+        }
+
+            
+        [HttpGet("{startTime}/{endTime}")]
+        public ActionResult<List<Measurement>> Get(DateTime startTime, DateTime endTime)
+        {
+            return _context.Measurements
+                .Include(m => m.Place)
+                .OrderByDescending(m => m.Time)
+                .Where(m => m.Time >= startTime &&  m.Time <= endTime)
+                .ToList();
         }
 
         // POST: api/Observation
         [HttpPost]
-        public void Post([FromBody] string value)
+        [Authorize]
+        public void Post([FromBody] Measurement value)
         {
+            _context.Entry(value.Place).State = EntityState.Unchanged;
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    _context.Measurements.Add(value);
+                    _context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                }
+            }
         }
 
         // PUT: api/Observation/5
