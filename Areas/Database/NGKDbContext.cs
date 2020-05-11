@@ -3,7 +3,7 @@ using NGK_Assignment_3.Areas.Database.Models;
 
 namespace NGK_Assignment_3.Areas.Database
 {
-    public class NGKDbContext : Microsoft.EntityFrameworkCore.DbContext
+    public class NGKDbContext : DbContext
     {
         public DbSet<Measurement> Measurements { get; set; }
         public DbSet<User> Users { get; set; }
