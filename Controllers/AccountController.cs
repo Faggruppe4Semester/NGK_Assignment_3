@@ -56,7 +56,7 @@ namespace NGK_Assignment_3.Controllers
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            return await Login(regUser);
+            return regUser;
         }
 
         [HttpPost("Login")]
@@ -64,7 +64,7 @@ namespace NGK_Assignment_3.Controllers
         public async Task<ActionResult<UserDto>> Login([FromBody]UserDto loginUser)
         {
             loginUser.Email = loginUser.Email.ToLower();
-            var user = await _context.Users.Where(user => user.Email == loginUser.Email).FirstOrDefaultAsync();
+            var user = await _context.Users.Where(user => user.Email.ToLower() == loginUser.Email).FirstOrDefaultAsync();
             if (user == null) return BadRequest("User doesn't exist.");
             
             var validPwd = BCrypt.Net.BCrypt.Verify(loginUser.Password, user.PasswordHash);

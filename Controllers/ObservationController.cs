@@ -76,16 +76,5 @@ namespace NGK_Assignment_3.Controllers
             }
         }
 
-        // PUT: api/Observation/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }
