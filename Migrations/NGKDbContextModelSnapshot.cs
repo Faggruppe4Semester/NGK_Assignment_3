@@ -24,14 +24,14 @@ namespace NGK_Assignment_3.Migrations
                     b.Property<DateTime>("Time")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Humidity")
-                        .HasColumnType("int");
-
                     b.Property<double>("PlaceLat")
                         .HasColumnType("float");
 
                     b.Property<double>("PlaceLon")
                         .HasColumnType("float");
+
+                    b.Property<int>("Humidity")
+                        .HasColumnType("int");
 
                     b.Property<float>("Pressure")
                         .HasColumnType("real");
@@ -39,7 +39,7 @@ namespace NGK_Assignment_3.Migrations
                     b.Property<float>("Temperature")
                         .HasColumnType("real");
 
-                    b.HasKey("Time");
+                    b.HasKey("Time", "PlaceLat", "PlaceLon");
 
                     b.HasIndex("PlaceLat", "PlaceLon");
 

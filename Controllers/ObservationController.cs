@@ -64,7 +64,16 @@ namespace NGK_Assignment_3.Controllers
         [Authorize]
         public async Task<IActionResult> Post([FromBody] Measurement value)
         {
-            _context.Entry(value.Place).State = EntityState.Unchanged;
+            var place = _context.Places.AsNoTracking().FirstOrDefault(p => p.Name == value.Place.Name);
+            if (place == null)
+            {
+                _context.Add(value.Place);
+                _context.SaveChanges();
+            }
+            else
+            {
+                _context.Entry(value.Place).State = EntityState.Unchanged;
+            }
             using (var transaction = _context.Database.BeginTransaction())
             {
                 try
@@ -81,7 +90,79 @@ namespace NGK_Assignment_3.Controllers
                     return NotFound();
                 }
             }
-            
+        }
+
+        [HttpGet("SeedData")]
+        public ActionResult SeedData()
+        {
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var p1 = new Place()
+                    {
+                        Lat = 4,
+                        Lon = 20,
+                        Name = "Amsterdam"
+                    };
+                    var p2 = new Place()
+                    {
+                        Lat = 66,
+                        Lon = 25,
+                        Name = "Brabrand"
+                    };
+
+                    var m1 = new Measurement()
+                    {
+                        Humidity = 25,
+                        Place = p2,
+                        Pressure = 1050,
+                        Temperature = 13,
+                        Time = DateTime.Now.AddDays(-1)
+                    };
+
+                    var m2 = new Measurement()
+                    {
+                        Humidity = 19,
+                        Place = p2,
+                        Pressure = 1080,
+                        Temperature = 18,
+                        Time = DateTime.Now.AddDays(1)
+                    };
+
+                    var m3 = new Measurement()
+                    {
+                        Humidity = 45,
+                        Place = p1,
+                        Pressure = 1020,
+                        Temperature = 8,
+                        Time = DateTime.Now.AddDays(-10)
+                    };
+
+                    var m4 = new Measurement()
+                    {
+                        Humidity = 30,
+                        Place = p1,
+                        Pressure = 1030,
+                        Temperature = 13,
+                        Time = DateTime.Now.AddDays(-5)
+                    };
+
+                    _context.Add(m1);
+                    _context.Add(m2);
+                    _context.Add(m3);
+                    _context.Add(m4);
+                    _context.SaveChanges();
+                    transaction.Commit();
+                    return Ok();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine(e);
+                    return BadRequest();
+                }
+            }
         }
 
     }

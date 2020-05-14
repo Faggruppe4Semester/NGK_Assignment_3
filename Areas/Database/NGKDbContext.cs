@@ -22,8 +22,8 @@ namespace NGK_Assignment_3.Areas.Database
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Place>().HasKey(place => new {place.Lat, place.Lon});
-            
 
+            modelBuilder.Entity<Measurement>().HasKey(m => new {m.Time, m.PlaceLat, m.PlaceLon});
             modelBuilder.Entity<Measurement>()
                 .HasOne(m => m.Place)
                 .WithMany(p => p.Measurements)
