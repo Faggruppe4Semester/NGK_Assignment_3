@@ -33,14 +33,6 @@ namespace NGK_Assignment_3.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/Account/5
-        [HttpGet("{id}")]
-        [Authorize]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
         // POST: api/Account
         [HttpPost("Register")]
         [AllowAnonymous]
@@ -59,6 +51,7 @@ namespace NGK_Assignment_3.Controllers
             return regUser;
         }
 
+        // POST: api/Login
         [HttpPost("Login")]
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Login([FromBody]UserDto loginUser)
@@ -88,18 +81,6 @@ namespace NGK_Assignment_3.Controllers
             loginUser.Token = new JwtSecurityTokenHandler().WriteToken(JWToken);
 
             return loginUser;
-        }
-
-        // PUT: api/Account/5
-        [HttpPut("{id}")]
-        public void Put([FromBody] UserDto regUser)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete([FromBody] UserDto regUser)
-        {
         }
 
         private IEnumerable<Claim> GetUserClaims(User userDto)

@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using NGK_Assignment_3.Areas.Database;
 using NGK_Assignment_3.Areas.Database.Models;
+using NGK_Assignment_3.Hubs;
 
 namespace NGK_Assignment_3.Controllers
 {
@@ -17,8 +19,10 @@ namespace NGK_Assignment_3.Controllers
     public class ObservationController : ControllerBase
     {
         private NGKDbContext _context;
-        public ObservationController(NGKDbContext context)
+        private readonly IHubContext<MeasurementHub> _hub;
+        public ObservationController(NGKDbContext context, IHubContext<MeasurementHub> hub)
         {
+            _hub = hub;
             _context = context;
             _context.SaveChanges();
         }
@@ -44,7 +48,7 @@ namespace NGK_Assignment_3.Controllers
                 .ToList();
         }
 
-            
+        // GET: api/Observation/MM-DD-YYYY/MM-DD-YYYY
         [HttpGet("{startTime}/{endTime}")]
         public ActionResult<List<Measurement>> Get(DateTime startTime, DateTime endTime)
         {
@@ -58,7 +62,7 @@ namespace NGK_Assignment_3.Controllers
         // POST: api/Observation
         [HttpPost]
         [Authorize]
-        public void Post([FromBody] Measurement value)
+        public async Task<IActionResult> Post([FromBody] Measurement value)
         {
             _context.Entry(value.Place).State = EntityState.Unchanged;
             using (var transaction = _context.Database.BeginTransaction())
@@ -68,12 +72,16 @@ namespace NGK_Assignment_3.Controllers
                     _context.Measurements.Add(value);
                     _context.SaveChanges();
                     transaction.Commit();
+                    await _hub.Clients.All.SendAsync("ReceiveMeasurement", value.Time, value.Place.Name,value.PlaceLat,value.PlaceLon,value.Temperature,value.Humidity,value.Pressure);
+                    return Ok();
                 }
                 catch (Exception e)
                 {
                     transaction.Rollback();
+                    return NotFound();
                 }
             }
+            
         }
 
     }

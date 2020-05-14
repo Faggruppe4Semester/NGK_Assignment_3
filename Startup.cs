@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using NGK_Assignment_3.Areas.Database;
+using NGK_Assignment_3.Hubs;
 
 namespace NGK_Assignment_3
 {
@@ -37,6 +38,7 @@ namespace NGK_Assignment_3
             {
                 opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
+            services.AddSignalR();
 
             services.AddDbContext<NGKDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("LocalDB")));
@@ -72,8 +74,9 @@ namespace NGK_Assignment_3
 
 
             services.AddAuthorization();
-
+            services.AddRazorPages();
             services.AddAutoMapper(typeof(Startup));
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -85,7 +88,7 @@ namespace NGK_Assignment_3
             }
 
             app.UseHttpsRedirection();
-
+            app.UseStaticFiles();
             app.UseRouting();
 
             app.UseAuthentication();
@@ -95,6 +98,8 @@ namespace NGK_Assignment_3
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapRazorPages();  
+                endpoints.MapHub<MeasurementHub>("/measurementHub");
             });
         }
     }
